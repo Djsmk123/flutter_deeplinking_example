@@ -1,12 +1,54 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Link, Route, Routes, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Link, Route, Routes, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Home = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent default form submission behavior
+
+    // Simulate login (replace with actual authentication logic)
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
+      navigate('/blogs'); // Redirect to blogs page on successful login
+    } catch (error) {
+      console.error(error); // Handle login errors (e.g., invalid credentials)
+    } finally {
+      setUsername(''); // Clear form fields after submission
+      setPassword('');
+    }
+  };
+
   return (
     <div>
       <h1>Welcome to the Blog App!</h1>
       <p>This is the home page with dummy messages about blogs.</p>
+      <form onSubmit={handleLogin}>
+        <label htmlFor="username">Username:</label>
+        <input
+          type="text"
+          id="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <br />
+        <label htmlFor="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <br />
+        <button type="submit">Login</button>
+      </form>
+      <br />
+      <Link to="/blogs">View Blogs (without login)</Link>
     </div>
   );
 };
@@ -15,14 +57,16 @@ const BlogList = () => {
   const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
-    axios
-      .get('https://dev.to/api/articles?username=djsmk123')
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('https://dev.to/api/articles?username=djsmk123');
         setBlogs(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
@@ -39,27 +83,25 @@ const BlogList = () => {
   );
 };
 
-const Blog = () => {
-  const { id } = useParams();
+const Blog = ({ id }) => {
   const [blog, setBlog] = useState(null);
-  
-  useEffect(() => {
-    axios
-      .get(`https://dev.to/api/articles/${id}`)
-      .then((response) => {
-        setBlog(response.data);
 
-      })
-      .catch((error) => {
-        
-        console.log(error);
-      });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`https://dev.to/api/articles/${id}`);
+        setBlog(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchData();
   }, [id]);
 
   if (!blog) {
     return <div>Loading...</div>;
   }
-
 
   return (
     <div>
@@ -71,6 +113,8 @@ const Blog = () => {
   );
 };
 
+
+
 const App = () => {
   return (
     <Router>
@@ -78,6 +122,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/blogs" element={<BlogList />} />
         <Route path="/blog/:id" element={<Blog />} />
+        {/* Remove the LoginForm route as it's not needed */}
       </Routes>
     </Router>
   );
